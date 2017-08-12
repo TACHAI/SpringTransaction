@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+			            http://www.springframework.org/schema/beans/spring-beans.xsd
+			            http://www.springframework.org/schema/context
+			            http://www.springframework.org/schema/context/spring-context.xsd
+			            http://www.springframework.org/schema/mvc
+			            http://www.springframework.org/schema/mvc/spring-mvc.xsd
+			            http://www.springframework.org/schema/tx
+			            http://www.springframework.org/schema/tx/spring-tx.xsd
+			             http://www.springframework.org/schema/aop
+			            http://www.springframework.org/schema/aop/spring-aop.xsd
+			            ">
+			      
+	 <!-- 引入外部的属性标签 -->
+	 <context:property-placeholder location="classpath:db.properties"/>
+	<!-- 配置c3p0的连接池 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPootledDataSource">
+		<property name="driverClass" value="${dataSource.driverClass}"/>
+		<property name="jdbcUrl" value="${dataSource.jdbcUrl}"/>
+		<property name="user" value="${dataSource.user}"/>
+		<property name="password" value="${jdbc.password}"/>
+	
+	</bean>
+	<!-- 配置业务层的类 -->
+	<bean id="accountService" class="cn.laohu.spring.demo2.AccountServiceImpl">
+		<property name="accountDao" ref="accoutDao"></property>
+		
+	</bean>
+	<!-- 配置Dao的类 -->
+	<bean id="accountDao" class="cn.laohu.spring.demo2.AccountDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 配置业务层的代理 -->
+	<bean id="accountServiceProxy" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<!-- 配置目标对象加强类 -->
+		<property name="target" ref="accountService"></property>
+		<!-- 注入事务管理 -->
+		<property name="transactionManager" ref="transactionManager"></property>
+		<!-- 注入事务的属性例如隔离级别 -->
+		<property name="transactionAttributes">
+			<!--prop的格式
+				PROPAGATION   :事务的传播行为。
+				ISOLATION     :事务的隔离级别。
+				readOnly      :只读.
+				-Exception     :发生哪些异常回滚事务。
+				+Exception	  :发生哪些异常不回滚事务。
+			 -->
+			<!-- <props key="insert*">PROPAGATION_REQUIRED </props>
+			<props key="update*">PROPAGATION_REQUIRED </props>
+			<props key="*">PROPAGATION_REQUIRED </props> -->
+			<props>
+				<prop key="transfer">PROPAGATION_REQUIRED"></prop>
+			</props>
+		</property>
+	</bean>
+	
+</beans>
